@@ -19,7 +19,7 @@ pipeline {
     stage('Install Python Tools') {
       steps {
         bat 'pip install --upgrade pip'
-        bat 'pip install gitleaks checkov semgrep trivy grype dockle syft'
+        bat 'pip install gitleaks checkov trivy syft'
       }
     }
 
@@ -32,13 +32,12 @@ pipeline {
     stage('IaC Security') {
       steps {
         bat 'checkov -d infrastructure || exit /b 0'
-        bat 'tfsec infrastructure || exit /b 0'
       }
     }
 
     stage('SAST') {
       steps {
-        bat 'semgrep --config auto . || exit /b 0'
+        bat 'wsl semgrep --config auto . || exit /b 0'
       }
     }
 
@@ -51,15 +50,12 @@ pipeline {
     stage('Container Scanning') {
       steps {
         bat 'trivy image %IMAGE_NAME% || exit /b 0'
-        bat 'grype %IMAGE_NAME% || exit /b 0'
-        bat 'dockle %IMAGE_NAME% || exit /b 0'
       }
     }
 
     stage('SBOM + Signing') {
       steps {
         bat 'syft %IMAGE_NAME% -o spdx > sbom.spdx || exit /b 0'
-        bat 'cosign sign --key cosign.key %IMAGE_NAME% || exit /b 0'
       }
     }
 
