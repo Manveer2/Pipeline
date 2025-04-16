@@ -5,10 +5,6 @@ pipeline {
     IMAGE_NAME = "mysecureapp"
   }
 
-  tools {
-    python 'Python3' // Make sure you define this Python version in Jenkins global tools
-  }
-
   stages {
     stage('Checkout') {
       steps {
