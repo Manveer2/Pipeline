@@ -1,4 +1,4 @@
-FROM registry1.dso.mil/ironbank/opensource/python/python3
+FROM registry1.dso.mil/ironbank/opensource/python/python3:3.10
 
 WORKDIR /app
 COPY . /app
