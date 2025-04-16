@@ -3,6 +3,8 @@ pipeline {
     docker {
       image 'python:3.9'
       args '-v /var/run/docker.sock:/var/run/docker.sock'
+      registryUrl 'https://registry1.dso.mil'
+      registryCredentialsId 'dcadcb14-8fb7-4547-bb0a-3419e512e018'
     }
   }
 
