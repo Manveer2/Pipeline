@@ -12,18 +12,18 @@ pipeline {
       }
     }
 
-    stage('Install Python Tools') {
-      steps {
-        bat 'pip install --upgrade pip'
-        bat 'pip install checkov'
-      }
-    }
-
     stage('Verify CLI Tools') {
     steps {
         bat 'gitleaks version'
         bat 'trivy --version'
         bat 'syft version'
+      }
+    }
+
+    stage('Install Python Tools') {
+      steps {
+        bat 'pip install --upgrade pip'
+        bat 'pip install checkov'
       }
     }
 
@@ -41,7 +41,7 @@ pipeline {
 
     stage('SAST') {
       steps {
-        bat 'wsl semgrep --config auto . || exit /b 0'
+ 	bat 'wsl /home/manveers/.local/bin/semgrep --config auto . || exit /b 0'
       }
     }
 
