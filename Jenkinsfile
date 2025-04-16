@@ -15,7 +15,15 @@ pipeline {
     stage('Install Python Tools') {
       steps {
         bat 'pip install --upgrade pip'
-        bat 'pip install gitleaks checkov trivy syft'
+        bat 'pip install checkov'
+      }
+    }
+
+    stage('Verify CLI Tools') {
+    steps {
+        bat 'gitleaks version'
+        bat 'trivy --version'
+        bat 'syft version'
       }
     }
 
