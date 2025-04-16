@@ -1,7 +1,7 @@
 pipeline {
   agent {
     docker {
-      image 'registry1.dso.mil/ironbank/opensource/python/python3'
+      image 'python:3.9'
       args '-v /var/run/docker.sock:/var/run/docker.sock'
     }
   }
