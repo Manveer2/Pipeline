@@ -1,13 +1,12 @@
 pipeline {
-  agent {
-    docker {
-      image 'python:3.9'
-      args '-v /var/run/docker.sock:/var/run/docker.sock'
-    }
-  }
+  agent any
 
   environment {
     IMAGE_NAME = "mysecureapp"
+  }
+
+  tools {
+    python 'Python3' // Make sure you define this Python version in Jenkins global tools
   }
 
   stages {
@@ -19,64 +18,57 @@ pipeline {
 
     stage('Install Python Tools') {
       steps {
-        sh '''
-          pip install --no-cache-dir gitleaks checkov semgrep trivy grype dockle syft
-        '''
+        bat 'pip install --upgrade pip'
+        bat 'pip install gitleaks checkov semgrep trivy grype dockle syft'
       }
     }
 
     stage('Secrets Scan') {
       steps {
-        sh 'gitleaks detect --source . --report-path gitleaks-report.json || true'
+        bat 'gitleaks detect --source . --report-path gitleaks-report.json || exit /b 0'
       }
     }
 
     stage('IaC Security') {
       steps {
-        sh '''
-          checkov -d infrastructure/ || true
-          tfsec infrastructure/ || true
-        '''
+        bat 'checkov -d infrastructure || exit /b 0'
+        bat 'tfsec infrastructure || exit /b 0'
       }
     }
 
     stage('SAST') {
       steps {
-        sh 'semgrep --config auto . || true'
+        bat 'semgrep --config auto . || exit /b 0'
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        sh 'docker build -t $IMAGE_NAME .'
+        bat 'docker build -t %IMAGE_NAME% .'
       }
     }
 
     stage('Container Scanning') {
       steps {
-        sh '''
-          trivy image $IMAGE_NAME || true
-          grype $IMAGE_NAME || true
-          dockle $IMAGE_NAME || true
-        '''
+        bat 'trivy image %IMAGE_NAME% || exit /b 0'
+        bat 'grype %IMAGE_NAME% || exit /b 0'
+        bat 'dockle %IMAGE_NAME% || exit /b 0'
       }
     }
 
     stage('SBOM + Signing') {
       steps {
-        sh '''
-          syft $IMAGE_NAME -o spdx > sbom.spdx || true
-          cosign sign --key cosign.key $IMAGE_NAME || true
-        '''
+        bat 'syft %IMAGE_NAME% -o spdx > sbom.spdx || exit /b 0'
+        bat 'cosign sign --key cosign.key %IMAGE_NAME% || exit /b 0'
       }
     }
 
     stage('DAST') {
       steps {
-        sh '''
-          docker run -d -p 5000:8080 --name testapp $IMAGE_NAME
-          sleep 10
-          nikto -h http://localhost:5000 || true
+        bat '''
+          docker run -d -p 5000:8080 --name testapp %IMAGE_NAME%
+          timeout /t 10
+          nikto -h http://localhost:5000 || exit /b 0
           docker stop testapp && docker rm testapp
         '''
       }
